@@ -32,14 +32,27 @@ router
 
 router
 	.get("/import/accounts/", function (req, res) {
+		const offset = 0;
+		const pageSize = 1000;
 		const users = db._query(aql`
-            FOR user IN usersAlias
-                SORT user.displayName
-                RETURN DISTINCT {
-                    id: user.publicId || user.id,
-                    name: user.displayName,
-                    link: CONCAT("https://yandex.ru/q/profile/", user.publicId)
-                }
+            LET data = (
+                FOR user IN users
+                    SORT user.displayName
+                    LIMIT ${offset}, ${pageSize}
+                    RETURN {
+                        id: user.publicId || user.id,
+                        name: user.displayName,
+                        link: CONCAT("https://yandex.ru/q/profile/", user.publicId)
+                    }
+            )
+
+            RETURN {
+                total: COLLECTION_COUNT(users),
+                pageSize: ${pageSize},
+                offset: ${offset},
+                data
+
+            }
         `);
 
 		res.send(users);
