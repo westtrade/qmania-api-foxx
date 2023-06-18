@@ -29,3 +29,21 @@ router
 	.response(["application/json"], "Accounts list")
 	.summary("List of accounts ready to import")
 	.description("Prints JSON with user accounts from q");
+
+router
+	.get("/import/accounts/", function (req, res) {
+		const users = db._query(aql`
+            FOR user IN usersAlias
+                SORT user.displayName
+                RETURN DISTINCT {
+                    id: user.publicId || user.id,
+                    name: user.displayName,
+                    link: CONCAT("https://yandex.ru/q/profile/", user.publicId)
+                }
+        `);
+
+		res.send(users);
+	})
+	.response(["application/json"], "Accounts list")
+	.summary("List of accounts ready to import")
+	.description("Prints JSON with user accounts from q");
